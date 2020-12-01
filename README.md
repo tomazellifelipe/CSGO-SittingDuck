@@ -13,3 +13,9 @@ D:\Steam\steamapps\common\Counter-Strike Global Offensive\csgo\cfg\gamestate_int
 - run the python file
 - after the match ended open the http:localhost:5000 (probably will change the port)
 - on /statiscs will be a map like de_mirage with your positions on top of it
+- for map pictures and infos look at 
+```
+csgo\resourse\overviews 
+```
+
+Using matplotlib set the center of the coordinates system to match the one passed on de_map.txt file, this value will be diferente for each map, so I'll need to grab the map name information
