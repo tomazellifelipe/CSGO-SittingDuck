@@ -1,7 +1,9 @@
 from flask import Flask, request, render_template
+from player import Player
 
 app = Flask(__name__)
 userinfo = dict()
+player = Player('76561198263058338')
 
 
 @app.route('/')
@@ -17,8 +19,17 @@ def csgo():
 
 @app.route('/api/csgo', methods=['POST'])
 def csgoapi():
-    userinfo.update(request.get_json())
+    positionsJson = request.get_json()
+    player.position.append(
+        positionsJson['allplayers'][player.steamid]['position'])
+    userinfo.update(positionsJson)
     return 'This is a POST route for CS:GO Game Integration'
+
+
+@app.route('/debug')
+def debug():
+    print(player.position)
+    return 'Ok'
 
 
 if __name__ == '__main__':
