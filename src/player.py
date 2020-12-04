@@ -31,4 +31,4 @@ class Map(metaclass=SingletonMeta):
         self.name = name
         self.initial_x = 0
         self.initial_y = 0
-    pass
+        self.image = "path_to_image_file"
