@@ -1,25 +1,8 @@
 import json
 
-from flask import Flask, render_template, request
-from flask_sqlalchemy import SQLAlchemy
-
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'dev'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sittingduck.db'
-db = SQLAlchemy(app)
-
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=False, nullable=False)
-    steamid = db.Column(db.String(50), unique=False, nullable=False)
-    userteam = db.Column(db.String(2), unique=False, nullable=False)
-    mapname = db.Column(db.String(50), unique=False, nullable=False)
-    mapround = db.Column(db.String(50), unique=False, nullable=False)
-    posx = db.Column(db.Float, unique=False, nullable=False)
-    posy = db.Column(db.Float, unique=False, nullable=False)
-    posz = db.Column(db.Float, unique=False, nullable=False)
+from flask import render_template, request, g
+from sittingduck import app, db
+from sittingduck.models import User
 
 
 @app.route('/')
@@ -61,9 +44,5 @@ def csgoapi():
 
 @app.route('/debug')
 def debug():
-    print(User.query.all())
-    return 'ok'
-
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5050)
+    g.user = 'Felipe'
+    return g.user
