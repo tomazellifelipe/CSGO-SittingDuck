@@ -1,35 +1,21 @@
 from datetime import datetime
-from enum import unique
 
-from sqlalchemy.orm import backref
 from sittingduck import db
-
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=False, nullable=False)
-    steamid = db.Column(db.String(50), unique=False, nullable=False)
-    userteam = db.Column(db.String(2), unique=False, nullable=False)
-    mapname = db.Column(db.String(50), unique=False, nullable=False)
-    mapround = db.Column(db.String(50), unique=False, nullable=False)
-    posx = db.Column(db.Float, unique=False, nullable=False)
-    posy = db.Column(db.Float, unique=False, nullable=False)
-    posz = db.Column(db.Float, unique=False, nullable=False)
 
 
 class Map(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    mapName = db.Column(db.String(50), unique=True, nullable=False)
-    mapImage = db.Column(db.String(50), unique=True, nullable=False)
-    mapOrigem_x = db.Column(db.Float, nullable=False)
-    mapOrigem_y = db.Column(db.Float, nullable=False)
-    mapScale = db.Column(db.Float, nullable=False)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    image = db.Column(db.String(50), unique=True, nullable=False)
+    origem_x = db.Column(db.Float, nullable=False)
+    origem_y = db.Column(db.Float, nullable=False)
+    scale = db.Column(db.Float, nullable=False)
 
     def __repr__(self) -> str:
-        return f"Map({self.mapName}, {self.mapOrigem_x}, {self.mapOrigem_y}, {self.mapScale})"
+        return f"Map({self.mapName}, {self.mapOrigem_x}, {self.mapOrigem_y})"
 
 
-class User2(db.Model):
+class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=False, nullable=False)
     steamid = db.Column(db.String(50), unique=False, nullable=False)
@@ -42,9 +28,9 @@ class User2(db.Model):
 
 class Match(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    mapName = db.Column(db.String(50), nullable=False)
-    matchDate = db.Column(db.DateTime, nulllable=False,
-                          default=datetime.utcnow)
+    name = db.Column(db.String(50), nullable=False)
+    date = db.Column(db.DateTime, nullable=False,
+                     default=datetime.utcnow)
     userId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     rounds = db.relationship('Round', backref='match', lazy=True)
 
@@ -61,17 +47,17 @@ class Round(db.Model):
     status = db.relationship('Status', backref='round', lazy=True)
 
     def __repr__(self) -> str:
-        return f'Round({self.currentRound}, {self.ctScore}, {self.tScore})'
+        return f"Round({self.currentRound}, {self.ctScore}, {self.tScore})"
 
 
 class Status(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    playerHealth = db.Column(db.Integer, nullable=False)
-    playerPositionX = db.Column(db.Integer, nullable=False)
-    playerPositionY = db.Column(db.Integer, nullable=False)
-    playerPositionZ = db.Column(db.Integer, nullable=False)
-    playerWeaponInHand = db.Column(db.String(50), nullable=False)
+    health = db.Column(db.Integer, nullable=False)
+    positionX = db.Column(db.Integer, nullable=False)
+    positionY = db.Column(db.Integer, nullable=False)
+    positionZ = db.Column(db.Integer, nullable=False)
+    weaponInHand = db.Column(db.String(50), nullable=False)
     roundId = db.Column(db.Integer, db.ForeignKey('round.id'), nullable=False)
 
     def __repr__(self) -> str:
-        return f'Status({self.playerHealth}, {self.playerWeaponInHand})'
+        return f"Status({self.health}, {self.weaponInHand})"
