@@ -35,7 +35,7 @@ class Match(db.Model):
     rounds = db.relationship('Round', backref='match', lazy=True)
 
     def __repr__(self) -> str:
-        return f"Match({self.mapName}, {self.matchDate})"
+        return f"Match({self.name}, {self.date})"
 
 
 class Round(db.Model):

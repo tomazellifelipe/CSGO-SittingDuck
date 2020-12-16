@@ -2,13 +2,13 @@ import io
 import json
 from PIL import Image
 
-from flask import Response, render_template, request, session, flash, redirect
+from flask import Response, render_template, request, flash, redirect
 from flask.helpers import url_for
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 from sittingduck import app, db
-from sittingduck.models import User, Round, Status
+from sittingduck.models import Round, Status, Match
 from sittingduck.forms import RegistrationForm, LoginForm
 
 
@@ -35,7 +35,8 @@ def login():
             flash('You have been logged in', 'success')
             return redirect(url_for('home'))
         else:
-            flash('Login Unsuccessfull. Please check steamid and password', 'danger')
+            flash('Login Unsuccessfull. Please check steamid and password',
+                  'danger')
     return render_template('login.html', title='Login', form=form)
 
 
@@ -49,8 +50,8 @@ def csgoapi():
     csgopayload = request.get_json()
     if csgopayload['player']['activity'] == 'playing':
         if csgopayload['round']['phase'] == 'live':
-            session['match']
-            logRound(csgopayload=csgopayload, match=session.get('match'))
+            match = Match.query.get(1)  # hardcoded
+            logRound(csgopayload=csgopayload, match=match)
     return (json.dumps({'success': True}),
             200,
             {'ContentType': 'application/json'})
@@ -64,37 +65,46 @@ def debug():
 
 @app.route('/plot.png')
 def plot_png():
-    fig = plotdata()
+    fig = plotdata(15)  # hardcoded
     output = io.BytesIO()
     FigureCanvas(fig).print_png(output)
     return Response(output.getvalue(), mimetype='image/png')
 
 
-def plotdata():
+def plotdata(round):
     img = Image.open('sittingduck\\images\\de_overpass.jpg')
-    data = User.query.all()
-    pos_x = [row.posx for row in data if row.mapround == '0']
-    pos_y = [row.posy for row in data if row.mapround == '0']
-    fig = Figure(figsize=(2**5, 2**5))
-    ax = fig.add_subplot()
-    ax.plot(pos_x, pos_y, 'ro')
-    ax.imshow(img, extent=(-4831, 494, -3544, 1781))
-    ax.axis([-4831, 494, -3544, 1781])
-    ax.axis('off')
-    return fig
+    roundQuery = Round.query.filter_by(currentRound=round).first()
+    if roundQuery:
+        statusQuery = Status.query.filter_by(roundId=roundQuery.id).all()
+        statusDeath = Status.query.filter_by(health=0,
+                                             roundId=roundQuery.id).first()
+        pos_x = [row.positionX for row in statusQuery]
+        pos_y = [row.positionY for row in statusQuery]
+        fig, ax = plt.subplots()
+        ax.plot(pos_x, pos_y, 'r')
+        if statusDeath:
+            ax.plot(statusDeath.positionX, statusDeath.positionY, 'bx')
+        ax.imshow(img, extent=(-4831, 494, -3544, 1781))
+        ax.axis([-4831, 494, -3544, 1781])
+        ax.axis('off')
+        return fig
 
 
 def logRound(csgopayload, match):
-    currentRound = db.query.find_by(
+    currentRound = Round.query.filter_by(
         currentRound=csgopayload['map']['round'], matchId=match.id).first()
-    if currentRound is None:
+    if currentRound:
+        logStatus(csgopayload=csgopayload, currentRound=currentRound)
+    else:
         round = Round(currentRound=csgopayload['map']['round'],
                       ctScore=csgopayload['map']['team_ct']['score'],
                       tScore=csgopayload['map']['team_t']['score'],
                       matchId=match.id)
         db.session.add(round)
-
-    logStatus(csgopayload=csgopayload, currentRound=currentRound)
+        db.session.commit()
+        currentRound = Round.query.filter_by(
+            currentRound=csgopayload['map']['round'], matchId=match.id).first()
+        logStatus(csgopayload=csgopayload, currentRound=currentRound)
 
 
 def logStatus(csgopayload, currentRound):
@@ -109,5 +119,6 @@ def logStatus(csgopayload, currentRound):
                     positionY=positions[1],
                     positionZ=positions[2],
                     weaponInHand=weaponInHand,
-                    currentRound=currentRound.id)
+                    roundId=currentRound.id)
     db.session.add(status)
+    db.session.commit()
