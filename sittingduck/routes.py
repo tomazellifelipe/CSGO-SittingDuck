@@ -71,21 +71,21 @@ def plot_png():
     return Response(output.getvalue(), mimetype='image/png')
 
 
-def plotdata(round):
-    img = Image.open('sittingduck\\images\\de_overpass.jpg')
-    roundQuery = Round.query.filter_by(currentRound=round).first()
-    if roundQuery:
-        statusQuery = Status.query.filter_by(roundId=roundQuery.id).all()
-        statusDeath = Status.query.filter_by(health=0,
-                                             roundId=roundQuery.id).first()
-        pos_x = [row.positionX for row in statusQuery]
-        pos_y = [row.positionY for row in statusQuery]
+def plotdata(num):
+    img = Image.open('sittingduck\\images\\de_overpass.dds')  # hardcoded
+    round = Round.query.filter_by(currentRound=num).first()
+    if round:
+        status = Status.query.filter_by(roundId=round.id).all()
+        statusHealth = Status.query.filter_by(health=0,
+                                              roundId=round.id).first()
+        pos_x = [row.positionX for row in status]
+        pos_y = [row.positionY for row in status]
         fig, ax = plt.subplots()
         ax.plot(pos_x, pos_y, 'r')
-        if statusDeath:
-            ax.plot(statusDeath.positionX, statusDeath.positionY, 'bx')
-        ax.imshow(img, extent=(-4831, 494, -3544, 1781))
-        ax.axis([-4831, 494, -3544, 1781])
+        if statusHealth:
+            ax.plot(statusHealth.positionX, statusHealth.positionY, 'bx')
+        ax.imshow(img, extent=(-4831, 494, -3544, 1781))  # hardcoded
+        ax.axis([-4831, 494, -3544, 1781])  # hardcoded
         ax.axis('off')
         return fig
 
